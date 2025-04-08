@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot via WebSocket</title>
+</head>
+<body>
+  <h2>Chatbot</h2>
+  <div id="chat" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto;"></div>
+  <input type="text" id="messageInput" placeholder="Type your message" style="width: 80%;" />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('messageInput');
+
+    // Change the URL to your WebSocket server
+    const socket = new WebSocket('ws://localhost:8080');
+
+    socket.onopen = () => {
+      appendMessage("[System] Connected to the server.");
+    };
+
+    socket.onmessage = (event) => {
+      appendMessage("[Bot] " + event.data);
+    };
+
+    socket.onclose = () => {
+      appendMessage("[System] Disconnected from the server.");
+    };
+
+    socket.onerror = (error) => {
+      appendMessage("[Error] Something went wrong.");
+      console.error("WebSocket Error:", error);
+    };
+
+    function sendMessage() {
+      const message = input.value;
+      if (message && socket.readyState === WebSocket.OPEN) {
+        socket.send(message);
+        appendMessage("[You] " + message);
+        input.value = '';
+      }
+    }
+
+    function appendMessage(message) {
+      const msg = document.createElement('div');
+      msg.textContent = message;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    input.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
